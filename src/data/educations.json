@@ -1,0 +1,22 @@
+[
+    {
+        "id": "graduate_school",
+        "name": "大学院修了",
+        "multiplier": 1.46
+    },
+    {
+        "id": "university",
+        "name": "大学卒",
+        "multiplier": 1.26
+    },
+    {
+        "id": "kosen_junior_college",
+        "name": "高専・短大・専門卒",
+        "multiplier": 1.13
+    },
+    {
+        "id": "highschool",
+        "name": "高校卒",
+        "multiplier": 1.00
+    }
+]

@@ -16,6 +16,10 @@ import {
   LineChart,
   LucideIcon
 } from 'lucide-react';
+import locations from './data/locations.json';
+import industries from './data/industries.json';
+import educations from './data/educations.json';
+import incomeStatsByAge from './data/incomeStatsByAge.json';
 
 interface DevBarProps {
   label: string;
@@ -108,51 +112,7 @@ const App: React.FC = () => {
   const [otherAssets, setOtherAssets] = useState<number>(0);
   const [debt, setDebt] = useState<number>(0);
 
-  // --- Constants (Stat Data) ---
-  const locations = [
-    { id: 'tokyo', name: '東京都', multiplier: 1.22, costOfLiving: 1.04 },
-    { id: 'kanagawa', name: '神奈川県 (概算)', multiplier: 1.15, costOfLiving: 1.033 },
-    { id: 'urban', name: 'その他の都市圏 (概算)', multiplier: 1.05, costOfLiving: 1.01 },
-    { id: 'rural', name: '地方・郊外 (概算)', multiplier: 0.90, costOfLiving: 0.96 },
-  ];
-
-  const industries = [
-    { id: 'utilities', name: '電気・ガス・熱供給・水道業', multiplier: 1.74 },
-    { id: 'finance', name: '金融業・保険業', multiplier: 1.47 },
-    { id: 'it', name: '情報通信業', multiplier: 1.38 },
-    { id: 'prof_services', name: '学術研究・専門・技術サービス・教育等', multiplier: 1.15 },
-    { id: 'manufacturing', name: '製造業', multiplier: 1.19 },
-    { id: 'construction', name: '建設業', multiplier: 1.18 },
-    { id: 'real_estate', name: '不動産業・物品賃貸業', multiplier: 1.04 },
-    { id: 'transport', name: '運輸業・郵便業', multiplier: 1.02 },
-    { id: 'medical', name: '医療・福祉', multiplier: 0.90 },
-    { id: 'wholesale_retail', name: '卸売業・小売業', multiplier: 0.86 },
-    { id: 'services', name: 'サービス業', multiplier: 0.81 },
-    { id: 'agri_mining', name: '農林水産・鉱業', multiplier: 0.73 },
-    { id: 'accommodation', name: '宿泊業・飲食サービス業', multiplier: 0.58 },
-  ];
-
-  const educations = [
-    { id: 'graduate_school', name: '大学院修了', multiplier: 1.46 },
-    { id: 'university', name: '大学卒', multiplier: 1.26 },
-    { id: 'kosen_junior_college', name: '高専・短大・専門卒', multiplier: 1.13 },
-    { id: 'highschool', name: '高校卒', multiplier: 1.00 },
-  ];
-
-  // 国税庁『令和6年分 民間給与実態統計調査』に基づく年齢別データ (20-70+)
-  const incomeStatsByAge = [
-    { minAge: 18, maxAge: 24, mean: 277, median_est: 239.3, sd_est: 215.8 },
-    { minAge: 25, maxAge: 29, mean: 407, median_est: 351.6, sd_est: 317.1 },
-    { minAge: 30, maxAge: 34, mean: 449, median_est: 387.9, sd_est: 349.8 },
-    { minAge: 35, maxAge: 39, mean: 482, median_est: 416.4, sd_est: 375.5 },
-    { minAge: 40, maxAge: 44, mean: 516, median_est: 445.8, sd_est: 402.0 },
-    { minAge: 45, maxAge: 49, mean: 540, median_est: 466.6, sd_est: 420.8 },
-    { minAge: 50, maxAge: 54, mean: 559, median_est: 483.0, sd_est: 435.6 },
-    { minAge: 55, maxAge: 59, mean: 572, median_est: 494.2, sd_est: 445.7 },
-    { minAge: 60, maxAge: 64, mean: 473, median_est: 408.4, sd_est: 368.6 },
-    { minAge: 65, maxAge: 69, mean: 370, median_est: 319.6, sd_est: 288.3 },
-    { minAge: 70, maxAge: 100, mean: 305, median_est: 263.5, sd_est: 237.7 }
-  ];
+  // --- Constants (Stat Data) --- JSONファイルからインポート済み
 
   // --- Calculations ---
   const stats = useMemo(() => {

@@ -1,0 +1,26 @@
+[
+    {
+        "id": "tokyo",
+        "name": "東京都",
+        "multiplier": 1.22,
+        "costOfLiving": 1.04
+    },
+    {
+        "id": "kanagawa",
+        "name": "神奈川県 (概算)",
+        "multiplier": 1.15,
+        "costOfLiving": 1.033
+    },
+    {
+        "id": "urban",
+        "name": "その他の都市圏 (概算)",
+        "multiplier": 1.05,
+        "costOfLiving": 1.01
+    },
+    {
+        "id": "rural",
+        "name": "地方・郊外 (概算)",
+        "multiplier": 0.90,
+        "costOfLiving": 0.96
+    }
+]

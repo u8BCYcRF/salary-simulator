@@ -1,0 +1,79 @@
+[
+    {
+        "minAge": 18,
+        "maxAge": 24,
+        "mean": 277,
+        "median_est": 239.3,
+        "sd_est": 215.8
+    },
+    {
+        "minAge": 25,
+        "maxAge": 29,
+        "mean": 407,
+        "median_est": 351.6,
+        "sd_est": 317.1
+    },
+    {
+        "minAge": 30,
+        "maxAge": 34,
+        "mean": 449,
+        "median_est": 387.9,
+        "sd_est": 349.8
+    },
+    {
+        "minAge": 35,
+        "maxAge": 39,
+        "mean": 482,
+        "median_est": 416.4,
+        "sd_est": 375.5
+    },
+    {
+        "minAge": 40,
+        "maxAge": 44,
+        "mean": 516,
+        "median_est": 445.8,
+        "sd_est": 402.0
+    },
+    {
+        "minAge": 45,
+        "maxAge": 49,
+        "mean": 540,
+        "median_est": 466.6,
+        "sd_est": 420.8
+    },
+    {
+        "minAge": 50,
+        "maxAge": 54,
+        "mean": 559,
+        "median_est": 483.0,
+        "sd_est": 435.6
+    },
+    {
+        "minAge": 55,
+        "maxAge": 59,
+        "mean": 572,
+        "median_est": 494.2,
+        "sd_est": 445.7
+    },
+    {
+        "minAge": 60,
+        "maxAge": 64,
+        "mean": 473,
+        "median_est": 408.4,
+        "sd_est": 368.6
+    },
+    {
+        "minAge": 65,
+        "maxAge": 69,
+        "mean": 370,
+        "median_est": 319.6,
+        "sd_est": 288.3
+    },
+    {
+        "minAge": 70,
+        "maxAge": 100,
+        "mean": 305,
+        "median_est": 263.5,
+        "sd_est": 237.7
+    }
+]
