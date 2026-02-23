@@ -108,42 +108,64 @@ const App: React.FC = () => {
   const [otherAssets, setOtherAssets] = useState<number>(0);
   const [debt, setDebt] = useState<number>(0);
 
-  // --- Constants ---
+  // --- Constants (Stat Data) ---
   const locations = [
-    { id: 'tokyo', name: '東京23区', multiplier: 1.25, costOfLiving: 1.3 },
-    { id: 'urban', name: '政令指定都市・首都圏', multiplier: 1.1, costOfLiving: 1.1 },
-    { id: 'rural', name: '地方・郊外', multiplier: 0.9, costOfLiving: 0.8 },
+    { id: 'tokyo', name: '東京都', multiplier: 1.22, costOfLiving: 1.04 },
+    { id: 'kanagawa', name: '神奈川県 (概算)', multiplier: 1.15, costOfLiving: 1.033 },
+    { id: 'urban', name: 'その他の都市圏 (概算)', multiplier: 1.05, costOfLiving: 1.01 },
+    { id: 'rural', name: '地方・郊外 (概算)', multiplier: 0.90, costOfLiving: 0.96 },
   ];
 
   const industries = [
-    { id: 'finance', name: '金融・コンサル', multiplier: 1.3 },
-    { id: 'it', name: 'IT・Web・通信', multiplier: 1.15 },
-    { id: 'medical', name: '医療・福祉・薬剤', multiplier: 1.2 },
-    { id: 'maker', name: 'メーカー・商社', multiplier: 1.05 },
-    { id: 'public', name: '公務員・インフラ', multiplier: 1.0 },
-    { id: 'service', name: 'サービス・飲食・小売', multiplier: 0.85 },
-    { id: 'other', name: 'その他', multiplier: 1.0 },
+    { id: 'utilities', name: '電気・ガス・熱供給・水道業', multiplier: 1.74 },
+    { id: 'finance', name: '金融業・保険業', multiplier: 1.47 },
+    { id: 'it', name: '情報通信業', multiplier: 1.38 },
+    { id: 'prof_services', name: '学術研究・専門・技術サービス・教育等', multiplier: 1.15 },
+    { id: 'manufacturing', name: '製造業', multiplier: 1.19 },
+    { id: 'construction', name: '建設業', multiplier: 1.18 },
+    { id: 'real_estate', name: '不動産業・物品賃貸業', multiplier: 1.04 },
+    { id: 'transport', name: '運輸業・郵便業', multiplier: 1.02 },
+    { id: 'medical', name: '医療・福祉', multiplier: 0.90 },
+    { id: 'wholesale_retail', name: '卸売業・小売業', multiplier: 0.86 },
+    { id: 'services', name: 'サービス業', multiplier: 0.81 },
+    { id: 'agri_mining', name: '農林水産・鉱業', multiplier: 0.73 },
+    { id: 'accommodation', name: '宿泊業・飲食サービス業', multiplier: 0.58 },
   ];
 
   const educations = [
-    { id: 'master', name: '大学院卒（修士・博士）', multiplier: 1.15 },
-    { id: 'bachelor', name: '大卒', multiplier: 1.05 },
-    { id: 'vocational', name: '短大・専門卒', multiplier: 0.95 },
-    { id: 'highschool', name: '高卒・中卒', multiplier: 0.85 },
+    { id: 'graduate_school', name: '大学院修了', multiplier: 1.46 },
+    { id: 'university', name: '大学卒', multiplier: 1.26 },
+    { id: 'kosen_junior_college', name: '高専・短大・専門卒', multiplier: 1.13 },
+    { id: 'highschool', name: '高校卒', multiplier: 1.00 },
+  ];
+
+  // 国税庁『令和6年分 民間給与実態統計調査』に基づく年齢別データ (20-70+)
+  const incomeStatsByAge = [
+    { minAge: 18, maxAge: 24, mean: 277, median_est: 239.3, sd_est: 215.8 },
+    { minAge: 25, maxAge: 29, mean: 407, median_est: 351.6, sd_est: 317.1 },
+    { minAge: 30, maxAge: 34, mean: 449, median_est: 387.9, sd_est: 349.8 },
+    { minAge: 35, maxAge: 39, mean: 482, median_est: 416.4, sd_est: 375.5 },
+    { minAge: 40, maxAge: 44, mean: 516, median_est: 445.8, sd_est: 402.0 },
+    { minAge: 45, maxAge: 49, mean: 540, median_est: 466.6, sd_est: 420.8 },
+    { minAge: 50, maxAge: 54, mean: 559, median_est: 483.0, sd_est: 435.6 },
+    { minAge: 55, maxAge: 59, mean: 572, median_est: 494.2, sd_est: 445.7 },
+    { minAge: 60, maxAge: 64, mean: 473, median_est: 408.4, sd_est: 368.6 },
+    { minAge: 65, maxAge: 69, mean: 370, median_est: 319.6, sd_est: 288.3 },
+    { minAge: 70, maxAge: 100, mean: 305, median_est: 263.5, sd_est: 237.7 }
   ];
 
   // --- Calculations ---
   const stats = useMemo(() => {
-    // 1. 同年代の年収基準値を計算
-    let baseExpectedIncome = 250;
-    if (age > 22) {
-      const yearsWorked = Math.min(age - 22, 33);
-      baseExpectedIncome += yearsWorked * 12;
-    }
-    const ageSigma = 100 + Math.max(0, age - 20) * 8;
+    // 該当する年齢帯の統計データを取得
+    const ageStat = incomeStatsByAge.find(s => age >= s.minAge && age <= s.maxAge)
+      || incomeStatsByAge[incomeStatsByAge.length - 1]; // fallback to oldest
+
+    // 1. 同年代の年収偏差値 (ベースは中央値)
+    const baseExpectedIncome = ageStat.median_est;
+    const ageSigma = ageStat.sd_est;
     let nationalDev = 50 + ((income - baseExpectedIncome) / ageSigma) * 10;
 
-    // 2. 属性（地域・業種・学歴）補正後の期待値
+    // 2. 属性（地域・業種・学歴）補正後の期待値と偏差値
     const loc = locations.find(l => l.id === location);
     const ind = industries.find(i => i.id === industry);
     const edu = educations.find(e => e.id === education);
@@ -154,29 +176,41 @@ const App: React.FC = () => {
     const indMultiplier = ind?.multiplier ?? 1;
     const eduMultiplier = edu?.multiplier ?? 1;
 
+    // 属性による年収期待値は「全国ベース期待値 × 各種倍率の積」とする
     const attrExpectedIncome = baseExpectedIncome * locMultiplier * indMultiplier * eduMultiplier;
-    const attrSigma = ageSigma * indMultiplier;
+    // 分散(標準偏差)も業種や地域の倍率で同じように広がると仮定する
+    const attrSigma = ageSigma * locMultiplier * indMultiplier * eduMultiplier;
     let attrDev = 50 + ((income - attrExpectedIncome) / attrSigma) * 10;
 
     // 3. 労働コスパ・QoL偏差値
+    // 実質時給: 年間労働時間で割り、さらに生活費の倍率で生活水準を補正する
     const annualWorkHours = workHours * 52;
     const hourlyWage = (income * 10000) / annualWorkHours;
+
+    // 期待時給: その属性が「週40時間」働いた場合の時給ベース
     const expectedAnnualWorkHours = 40 * 52;
     const expectedHourlyWage = (attrExpectedIncome * 10000) / expectedAnnualWorkHours / locCostOfLiving;
     const actualRealHourlyWage = hourlyWage / locCostOfLiving;
 
-    const hourlySigma = expectedHourlyWage * 0.3;
+    // 時給のばらつきは、期待時給の一定割合(ここでは仮に0.4倍)とする
+    const hourlySigma = expectedHourlyWage * 0.4;
     let qolDev = 50 + ((actualRealHourlyWage - expectedHourlyWage) / hourlySigma) * 10;
 
-    // 4. 資産偏差値 (New!)
+    // 4. 年代別の資産偏差値
     const netWorth = cash + stocks + otherAssets - debt;
-    // 年齢に基づく期待純資産（指数的に増加するモデル）
+
+    // 年齢に基づく期待純資産（金融広報中央委員会の世論調査ベース、中央値の近似カーブ）
     let expectedNetWorth = 0;
-    if (age > 20) {
-      expectedNetWorth = Math.pow(age - 20, 1.8) * 3;
-    }
-    // 資産のばらつきは年齢とともに大きく広がる
-    const netWorthSigma = 300 + Math.max(0, age - 20) * 50;
+    if (age <= 25) { expectedNetWorth = 15; }
+    else if (age <= 29) { expectedNetWorth = 50; }
+    else if (age <= 34) { expectedNetWorth = 120; }
+    else if (age <= 39) { expectedNetWorth = 200; }
+    else if (age <= 49) { expectedNetWorth = 250; }
+    else if (age <= 59) { expectedNetWorth = 300; }
+    else { expectedNetWorth = 650; }
+
+    // 資産のばらつき(Sigma)は、年齢とともに大きく広がる (仮定値)
+    const netWorthSigma = 200 + Math.max(0, age - 20) * 80;
     let netWorthDev = 50 + ((netWorth - expectedNetWorth) / netWorthSigma) * 10;
 
     // 丸め処理と上限・下限（20〜100）
