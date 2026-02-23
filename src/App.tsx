@@ -14,53 +14,50 @@ import {
   Home,
   CreditCard,
   LineChart,
-  LucideIcon
+  LucideIcon,
+  Sparkles
 } from 'lucide-react';
 import locations from './data/locations.json';
 import industries from './data/industries.json';
 import educations from './data/educations.json';
 import incomeStatsByAge from './data/incomeStatsByAge.json';
 
+// ─── DevBar (偏差値バー) ───
 interface DevBarProps {
   label: string;
   value: number;
-  colorClass: string;
-  icon: LucideIcon;
+  barClass: string;
+  emoji: string;
   desc?: string;
 }
 
-// コンポーネントの再生成を防ぐため、Appの外側に定義を移動
-const DevBar: React.FC<DevBarProps> = ({ label, value, colorClass, icon: Icon, desc }) => (
-  <div className="mb-6">
-    <div className="flex justify-between items-end mb-2">
+const DevBar: React.FC<DevBarProps> = ({ label, value, barClass, emoji, desc }) => (
+  <div className="mb-5">
+    <div className="flex justify-between items-end mb-1.5">
       <div className="flex items-center gap-2">
-        <div className={`p-2 rounded-lg ${colorClass} bg-opacity-10`}>
-          <Icon className={`w-5 h-5 ${colorClass.replace('bg-', 'text-')}`} />
-        </div>
+        <span className="text-lg">{emoji}</span>
         <div>
-          <h4 className="font-bold text-gray-800">{label}</h4>
-          <p className="text-xs text-gray-500">{desc}</p>
+          <h4 className="font-bold text-gray-700 text-sm">{label}</h4>
+          <p className="text-[11px] text-gray-400">{desc}</p>
         </div>
       </div>
-      <div className="text-2xl font-black tabular-nums tracking-tighter">
+      <div className="text-2xl font-black tabular-nums tracking-tighter text-gray-700">
         {value.toFixed(1)}
       </div>
     </div>
-    <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden relative">
-      <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-gray-300 z-10"></div>
+    <div className="h-3.5 w-full bg-pink-50 rounded-full overflow-hidden relative">
+      <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-pink-200/60 z-10"></div>
       <div
-        className={`h-full ${colorClass} transition-all duration-700 ease-out`}
+        className={`h-full ${barClass} rounded-full transition-all duration-700 ease-out`}
         style={{ width: `${Math.max(0, Math.min(100, (value / 100) * 100))}%` }}
       />
     </div>
   </div>
 );
 
+// ─── SliderInput (スライダー) ───
 interface SliderInputProps {
-  icon: LucideIcon;
-  iconColor: string;
-  valueColor: string;
-  accentColor: string;
+  emoji: string;
   label: string;
   value: number;
   min: number;
@@ -71,95 +68,101 @@ interface SliderInputProps {
   desc?: string;
 }
 
-const SliderInput: React.FC<SliderInputProps> = ({ icon: Icon, iconColor, valueColor, accentColor, label, value, min, max, step, unit, onChange, desc }) => {
+const SliderInput: React.FC<SliderInputProps> = ({ emoji, label, value, min, max, step, unit, onChange, desc }) => {
   const displayValue = value >= max ? `${max}${unit}以上` : `${value}${unit}`;
   return (
     <div className="space-y-2">
-      <label className="flex justify-between items-center font-medium">
+      <label className="flex justify-between items-center font-medium text-gray-600">
         <span className="flex items-center gap-2">
-          <Icon className={`w-4 h-4 ${iconColor}`} />
-          {label}
+          <span className="text-base">{emoji}</span>
+          <span className="text-sm">{label}</span>
         </span>
-        <span className={`text-xl font-bold ${valueColor}`}>
+        <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
           {displayValue}
         </span>
       </label>
       <input
         type="range" min={min} max={max} step={step}
         value={value} onChange={(e) => onChange(Number(e.target.value))}
-        className={`w-full ${accentColor}`}
+        className="w-full"
       />
-      {desc && <p className="text-xs text-gray-400 text-right">{desc}</p>}
+      {desc && <p className="text-[11px] text-gray-400 text-right">{desc}</p>}
     </div>
   );
 };
 
-const App: React.FC = () => {
-  // --- UI State ---
-  const [activeTab, setActiveTab] = useState<'income' | 'assets'>('income'); // 'income' | 'assets'
+// ─── SelectInput (セレクト) ───
+interface SelectInputProps {
+  emoji: string;
+  label: string;
+  value: string;
+  options: { id: string; name: string }[];
+  onChange: (val: string) => void;
+}
 
-  // --- Income & Attr State ---
+const SelectInput: React.FC<SelectInputProps> = ({ emoji, label, value, options, onChange }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-500 mb-1.5 flex items-center gap-1.5">
+      <span>{emoji}</span> {label}
+    </label>
+    <select
+      value={value} onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-2xl border border-pink-200 bg-white/80 px-4 py-2.5 text-sm text-gray-600 focus:ring-2 focus:ring-pink-300 focus:border-pink-300 outline-none transition-all"
+    >
+      {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+    </select>
+  </div>
+);
+
+// ─── App ───
+const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'income' | 'assets'>('income');
+
+  // Income & Attr State
   const [age, setAge] = useState<number>(30);
-  const [income, setIncome] = useState<number>(500); // 単位: 万円
-  const [workHours, setWorkHours] = useState<number>(40); // 週の労働時間
+  const [income, setIncome] = useState<number>(500);
+  const [workHours, setWorkHours] = useState<number>(40);
   const [location, setLocation] = useState<string>('tokyo');
   const [industry, setIndustry] = useState<string>('it');
   const [education, setEducation] = useState<string>('bachelor');
 
-  // --- Assets State ---
-  const [cash, setCash] = useState<number>(300); // 単位: 万円
+  // Assets State
+  const [cash, setCash] = useState<number>(300);
   const [stocks, setStocks] = useState<number>(200);
   const [otherAssets, setOtherAssets] = useState<number>(0);
   const [debt, setDebt] = useState<number>(0);
 
-  // --- Constants (Stat Data) --- JSONファイルからインポート済み
-
-  // --- Calculations ---
+  // --- Calculations --- (ロジックは一切変更なし)
   const stats = useMemo(() => {
-    // 該当する年齢帯の統計データを取得
     const ageStat = incomeStatsByAge.find(s => age >= s.minAge && age <= s.maxAge)
-      || incomeStatsByAge[incomeStatsByAge.length - 1]; // fallback to oldest
+      || incomeStatsByAge[incomeStatsByAge.length - 1];
 
-    // 1. 同年代の年収偏差値 (ベースは中央値)
     const baseExpectedIncome = ageStat.median_est;
     const ageSigma = ageStat.sd_est;
     let nationalDev = 50 + ((income - baseExpectedIncome) / ageSigma) * 10;
 
-    // 2. 属性（地域・業種・学歴）補正後の期待値と偏差値
     const loc = locations.find(l => l.id === location);
     const ind = industries.find(i => i.id === industry);
     const edu = educations.find(e => e.id === education);
 
-    // NOTE: TypeScript strict mode check to handle possible undefined fallback
     const locMultiplier = loc?.multiplier ?? 1;
     const locCostOfLiving = loc?.costOfLiving ?? 1;
     const indMultiplier = ind?.multiplier ?? 1;
     const eduMultiplier = edu?.multiplier ?? 1;
 
-    // 属性による年収期待値は「全国ベース期待値 × 各種倍率の積」とする
     const attrExpectedIncome = baseExpectedIncome * locMultiplier * indMultiplier * eduMultiplier;
-    // 分散(標準偏差)も業種や地域の倍率で同じように広がると仮定する
     const attrSigma = ageSigma * locMultiplier * indMultiplier * eduMultiplier;
     let attrDev = 50 + ((income - attrExpectedIncome) / attrSigma) * 10;
 
-    // 3. 労働コスパ・QoL偏差値
-    // 実質時給: 年間労働時間で割り、さらに生活費の倍率で生活水準を補正する
     const annualWorkHours = workHours * 52;
     const hourlyWage = (income * 10000) / annualWorkHours;
-
-    // 期待時給: その属性が「週40時間」働いた場合の時給ベース
     const expectedAnnualWorkHours = 40 * 52;
     const expectedHourlyWage = (attrExpectedIncome * 10000) / expectedAnnualWorkHours / locCostOfLiving;
     const actualRealHourlyWage = hourlyWage / locCostOfLiving;
-
-    // 時給のばらつきは、期待時給の一定割合(ここでは仮に0.4倍)とする
     const hourlySigma = expectedHourlyWage * 0.4;
     let qolDev = 50 + ((actualRealHourlyWage - expectedHourlyWage) / hourlySigma) * 10;
 
-    // 4. 年代別の資産偏差値
     const netWorth = cash + stocks + otherAssets - debt;
-
-    // 年齢に基づく期待純資産（金融広報中央委員会の世論調査ベース、中央値の近似カーブ）
     let expectedNetWorth = 0;
     if (age <= 25) { expectedNetWorth = 15; }
     else if (age <= 29) { expectedNetWorth = 50; }
@@ -168,181 +171,130 @@ const App: React.FC = () => {
     else if (age <= 49) { expectedNetWorth = 250; }
     else if (age <= 59) { expectedNetWorth = 300; }
     else { expectedNetWorth = 650; }
-
-    // 資産のばらつき(Sigma)は、年齢とともに大きく広がる (仮定値)
     const netWorthSigma = 200 + Math.max(0, age - 20) * 80;
     let netWorthDev = 50 + ((netWorth - expectedNetWorth) / netWorthSigma) * 10;
 
-    // 丸め処理と上限・下限（20〜100）
     const clamp = (val: number) => Math.min(Math.max(Math.round(val * 10) / 10, 20), 100);
-
     nationalDev = clamp(nationalDev);
     attrDev = clamp(attrDev);
     qolDev = clamp(qolDev);
     netWorthDev = clamp(netWorthDev);
-
-    // 総合偏差値（年収35%、資産35%、属性15%、コスパ15%の重み付け）
     const totalDev = clamp((nationalDev * 0.35) + (netWorthDev * 0.35) + (attrDev * 0.15) + (qolDev * 0.15));
 
-    // ランク判定
     let rankName = "";
-    let rankColor = "";
-    if (totalDev >= 80) { rankName = "GOD (雲の上の存在)"; rankColor = "text-yellow-500"; }
-    else if (totalDev >= 70) { rankName = "Sランク (トップエリート)"; rankColor = "text-purple-500"; }
-    else if (totalDev >= 65) { rankName = "Aランク (超優秀)"; rankColor = "text-blue-500"; }
-    else if (totalDev >= 55) { rankName = "Bランク (優秀・上位層)"; rankColor = "text-emerald-500"; }
-    else if (totalDev >= 45) { rankName = "Cランク (平均的・ボリューム層)"; rankColor = "text-gray-700"; }
-    else if (totalDev >= 35) { rankName = "Dランク (伸びしろあり)"; rankColor = "text-orange-500"; }
-    else { rankName = "Eランク (ハードモード)"; rankColor = "text-red-500"; }
+    let rankEmoji = "";
+    let rankGradient = "";
+    if (totalDev >= 80) { rankName = "GOD ─ 雲の上の存在"; rankEmoji = "👑"; rankGradient = "from-yellow-400 via-amber-400 to-orange-400"; }
+    else if (totalDev >= 70) { rankName = "Sランク ─ トップエリート"; rankEmoji = "💎"; rankGradient = "from-purple-400 via-fuchsia-400 to-pink-400"; }
+    else if (totalDev >= 65) { rankName = "Aランク ─ 超優秀"; rankEmoji = "✨"; rankGradient = "from-blue-400 via-cyan-400 to-teal-400"; }
+    else if (totalDev >= 55) { rankName = "Bランク ─ 上位層"; rankEmoji = "🌸"; rankGradient = "from-pink-400 via-rose-400 to-red-300"; }
+    else if (totalDev >= 45) { rankName = "Cランク ─ ボリューム層"; rankEmoji = "🌿"; rankGradient = "from-emerald-400 via-green-400 to-teal-400"; }
+    else if (totalDev >= 35) { rankName = "Dランク ─ 伸びしろあり"; rankEmoji = "🍀"; rankGradient = "from-orange-400 via-amber-400 to-yellow-400"; }
+    else { rankName = "Eランク ─ ハードモード"; rankEmoji = "💪"; rankGradient = "from-red-400 via-rose-400 to-pink-400"; }
 
     return {
-      nationalDev,
-      attrDev,
-      qolDev,
-      netWorthDev,
-      totalDev,
-      netWorth,
-      rankName,
-      rankColor,
+      nationalDev, attrDev, qolDev, netWorthDev, totalDev, netWorth,
+      rankName, rankEmoji, rankGradient,
       hourlyWage: Math.round(hourlyWage),
       expected: Math.round(attrExpectedIncome)
     };
   }, [age, income, workHours, location, industry, education, cash, stocks, otherAssets, debt]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-emerald-50 py-10 px-4 font-sans text-gray-800">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-cyan-50 py-8 px-4 relative overflow-hidden">
+      {/* 背景デコレーション */}
+      <div className="absolute top-10 left-10 text-4xl opacity-20 animate-float pointer-events-none select-none">🌸</div>
+      <div className="absolute top-32 right-16 text-3xl opacity-15 animate-float pointer-events-none select-none" style={{ animationDelay: '1s' }}>✨</div>
+      <div className="absolute bottom-20 left-20 text-3xl opacity-15 animate-float pointer-events-none select-none" style={{ animationDelay: '2s' }}>💫</div>
+      <div className="absolute bottom-40 right-10 text-4xl opacity-10 animate-float pointer-events-none select-none" style={{ animationDelay: '0.5s' }}>🫧</div>
 
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">
-            年収・資産偏差値シミュレータ <span className="text-indigo-600">PRO</span>
+      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
+
+        {/* ─── Header ─── */}
+        <div className="text-center space-y-2 py-2">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+            <span className="gradient-text">年収・資産偏差値</span>
+            <br className="md:hidden" />
+            <span className="text-gray-700"> シミュレータ</span>
+            <span className="ml-1 text-xl animate-float inline-block">✨</span>
           </h1>
-          <p className="text-gray-500 text-sm md:text-base">
-            年齢・属性・総資産からあなたの「真の戦闘力」を可視化します
+          <p className="text-gray-400 text-xs md:text-sm">
+            あなたの「経済力」をかわいく診断しちゃいます 🔮
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
 
-          {/* Left Column: Inputs */}
-          <div className="md:col-span-5 bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col">
-            <h2 className="text-xl font-bold flex items-center gap-2 border-b pb-3 mb-5">
-              <Zap className="w-5 h-5 text-indigo-500" />
+          {/* ─── Left: 入力パネル ─── */}
+          <div className="md:col-span-5 glass-card p-5 rounded-3xl animate-pulse-glow flex flex-col">
+            <h2 className="text-base font-bold flex items-center gap-2 border-b border-pink-100 pb-3 mb-4 text-gray-600">
+              <Sparkles className="w-4 h-4 text-pink-400" />
               ステータス入力
             </h2>
 
-            {/* Age Slider (Always Visible) */}
-            <div className="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+            {/* Age */}
+            <div className="mb-5 p-3.5 bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl border border-pink-100/50">
               <SliderInput
-                icon={Calendar} iconColor="text-blue-500" valueColor="text-blue-600" accentColor="accent-blue-500"
-                label="年齢" value={age} min={18} max={65} step={1} unit="歳"
+                emoji="🎂" label="年齢" value={age} min={18} max={65} step={1} unit="歳"
                 onChange={setAge}
               />
             </div>
 
             {/* Tabs */}
-            <div className="flex p-1 bg-gray-100 rounded-2xl mb-6">
+            <div className="flex p-1 bg-pink-50/80 rounded-2xl mb-5">
               <button
-                className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'income' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'income'
+                  ? 'bg-white text-pink-500 shadow-sm shadow-pink-100'
+                  : 'text-gray-400 hover:text-pink-400'}`}
                 onClick={() => setActiveTab('income')}
               >
-                年収・属性
+                💰 年収・属性
               </button>
               <button
-                className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'assets' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === 'assets'
+                  ? 'bg-white text-pink-500 shadow-sm shadow-pink-100'
+                  : 'text-gray-400 hover:text-pink-400'}`}
                 onClick={() => setActiveTab('assets')}
               >
-                資産・負債
+                🏦 資産・負債
               </button>
             </div>
 
             {/* Tab Contents */}
             <div className="flex-1 relative">
               {activeTab === 'income' && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <SliderInput
-                    icon={Banknote} iconColor="text-emerald-500" valueColor="text-emerald-600" accentColor="accent-emerald-500"
-                    label="現在の年収" value={income} min={200} max={1500} step={10} unit="万円"
+                    emoji="💴" label="現在の年収" value={income} min={200} max={1500} step={10} unit="万円"
                     onChange={setIncome}
                   />
                   <SliderInput
-                    icon={Clock} iconColor="text-orange-500" valueColor="text-orange-600" accentColor="accent-orange-500"
-                    label="週の労働時間" value={workHours} min={10} max={100} step={1} unit="時間"
+                    emoji="⏰" label="週の労働時間" value={workHours} min={10} max={100} step={1} unit="時間"
                     onChange={setWorkHours}
                     desc="※残業・副業含む実稼働"
                   />
 
-                  <div className="space-y-4 pt-4 border-t">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400" /> 居住地
-                      </label>
-                      <select
-                        value={location} onChange={(e) => setLocation(e.target.value)}
-                        className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                      >
-                        {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-gray-400" /> 業種
-                      </label>
-                      <select
-                        value={industry} onChange={(e) => setIndustry(e.target.value)}
-                        className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                      >
-                        {industries.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-gray-400" /> 最終学歴
-                      </label>
-                      <select
-                        value={education} onChange={(e) => setEducation(e.target.value)}
-                        className="w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-2 text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                      >
-                        {educations.map(ed => <option key={ed.id} value={ed.id}>{ed.name}</option>)}
-                      </select>
-                    </div>
+                  <div className="space-y-3.5 pt-4 border-t border-pink-100/50">
+                    <SelectInput emoji="📍" label="居住地" value={location} options={locations} onChange={setLocation} />
+                    <SelectInput emoji="🏢" label="業種" value={industry} options={industries} onChange={setIndustry} />
+                    <SelectInput emoji="🎓" label="最終学歴" value={education} options={educations} onChange={setEducation} />
                   </div>
                 </div>
               )}
 
               {activeTab === 'assets' && (
-                <div className="space-y-6">
-                  <SliderInput
-                    icon={Wallet} iconColor="text-emerald-500" valueColor="text-emerald-600" accentColor="accent-emerald-500"
-                    label="現金・預貯金" value={cash} min={0} max={10000} step={50} unit="万円"
-                    onChange={setCash}
-                  />
-                  <SliderInput
-                    icon={LineChart} iconColor="text-blue-500" valueColor="text-blue-600" accentColor="accent-blue-500"
-                    label="株式・投資信託・債券等" value={stocks} min={0} max={10000} step={50} unit="万円"
-                    onChange={setStocks}
-                  />
-                  <SliderInput
-                    icon={Home} iconColor="text-purple-500" valueColor="text-purple-600" accentColor="accent-purple-500"
-                    label="その他資産 (不動産・車など)" value={otherAssets} min={0} max={10000} step={50} unit="万円"
-                    onChange={setOtherAssets}
-                    desc="※持ち家などの場合は現在の売却想定額"
-                  />
-                  <SliderInput
-                    icon={CreditCard} iconColor="text-red-500" valueColor="text-red-600" accentColor="accent-red-500"
-                    label="負債 (ローン・借入金など)" value={debt} min={0} max={10000} step={50} unit="万円"
-                    onChange={setDebt}
-                  />
+                <div className="space-y-5">
+                  <SliderInput emoji="🏧" label="現金・預貯金" value={cash} min={0} max={10000} step={50} unit="万円" onChange={setCash} />
+                  <SliderInput emoji="📈" label="株式・投資信託・債券等" value={stocks} min={0} max={10000} step={50} unit="万円" onChange={setStocks} />
+                  <SliderInput emoji="🏠" label="その他資産 (不動産・車など)" value={otherAssets} min={0} max={10000} step={50} unit="万円" onChange={setOtherAssets} desc="※持ち家などの場合は売却想定額" />
+                  <SliderInput emoji="💳" label="負債 (ローン・借入金など)" value={debt} min={0} max={10000} step={50} unit="万円" onChange={setDebt} />
 
-                  <div className="mt-6 p-4 bg-amber-50 rounded-xl flex justify-between items-center border border-amber-100">
-                    <span className="font-bold text-amber-800 flex items-center gap-2">
-                      <Landmark className="w-4 h-4" /> 算出される純資産
+                  <div className="mt-4 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl flex justify-between items-center border border-amber-100/50">
+                    <span className="font-bold text-amber-700 flex items-center gap-1.5 text-sm">
+                      🏛️ 算出される純資産
                     </span>
-                    <span className="text-2xl font-black text-amber-700">
-                      {stats.netWorth.toLocaleString()}<span className="text-base font-normal text-amber-600"> 万円</span>
+                    <span className="text-xl font-black text-amber-600">
+                      {stats.netWorth.toLocaleString()}<span className="text-sm font-normal text-amber-500"> 万円</span>
                     </span>
                   </div>
                 </div>
@@ -350,84 +302,89 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Results */}
-          <div className="md:col-span-7 space-y-6">
+          {/* ─── Right: 結果パネル ─── */}
+          <div className="md:col-span-7 space-y-5">
 
-            {/* Top Result Card */}
-            <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-indigo-50 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Award className="w-48 h-48" />
+            {/* 総合評価カード */}
+            <div className="glass-card p-6 md:p-8 rounded-3xl relative overflow-hidden animate-pulse-glow">
+              {/* 背景装飾 */}
+              <div className="absolute top-0 right-0 p-6 opacity-[0.04]">
+                <Award className="w-40 h-40 text-pink-500" />
               </div>
+              <div className="absolute -bottom-4 -left-4 text-6xl opacity-[0.06] rotate-12 select-none">🌸</div>
 
               <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-2">
-                <span className="text-sm font-bold tracking-wider text-indigo-500 uppercase bg-indigo-50 px-3 py-1 rounded-full">
-                  総合評価
+                <span className="text-xs font-bold tracking-widest text-pink-400 uppercase bg-pink-50 px-3 py-1 rounded-full border border-pink-100">
+                  ✨ 総合評価 ✨
                 </span>
-                <div className="text-6xl md:text-7xl font-black text-gray-900 tracking-tighter py-2">
-                  {stats.totalDev.toFixed(1)}
+                <div className="text-6xl md:text-7xl font-black tracking-tighter py-1">
+                  <span className="gradient-text">{stats.totalDev.toFixed(1)}</span>
                 </div>
-                <div className={`text-xl md:text-2xl font-bold ${stats.rankColor}`}>
-                  {stats.rankName}
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{stats.rankEmoji}</span>
+                  <span className={`text-lg md:text-xl font-bold bg-gradient-to-r ${stats.rankGradient} bg-clip-text text-transparent`}>
+                    {stats.rankName}
+                  </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 mt-8 pt-6 border-t border-gray-100 relative z-10">
-                <div className="text-center p-2 md:p-3 bg-amber-50 rounded-2xl">
-                  <div className="text-[10px] md:text-xs text-amber-600 mb-1 font-medium">純資産額</div>
-                  <div className="text-sm md:text-lg font-bold text-amber-800">{stats.netWorth.toLocaleString()}万円</div>
+              <div className="grid grid-cols-3 gap-2.5 mt-6 pt-5 border-t border-pink-100/50 relative z-10">
+                <div className="text-center p-2.5 bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl border border-amber-100/50">
+                  <div className="text-[10px] md:text-xs text-amber-500 mb-0.5 font-medium">💰 純資産額</div>
+                  <div className="text-sm md:text-base font-bold text-amber-700">{stats.netWorth.toLocaleString()}万円</div>
                 </div>
-                <div className="text-center p-2 md:p-3 bg-gray-50 rounded-2xl">
-                  <div className="text-[10px] md:text-xs text-gray-500 mb-1">推定時給換算</div>
-                  <div className="text-sm md:text-lg font-bold text-gray-800">¥{stats.hourlyWage.toLocaleString()}</div>
+                <div className="text-center p-2.5 bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl border border-pink-100/50">
+                  <div className="text-[10px] md:text-xs text-pink-400 mb-0.5">⏱️ 推定時給</div>
+                  <div className="text-sm md:text-base font-bold text-pink-600">¥{stats.hourlyWage.toLocaleString()}</div>
                 </div>
-                <div className="text-center p-2 md:p-3 bg-gray-50 rounded-2xl">
-                  <div className="text-[10px] md:text-xs text-gray-500 mb-1">同属性年収目安</div>
-                  <div className="text-sm md:text-lg font-bold text-gray-800">{stats.expected}万円</div>
+                <div className="text-center p-2.5 bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-2xl border border-purple-100/50">
+                  <div className="text-[10px] md:text-xs text-purple-400 mb-0.5">🎯 属性年収目安</div>
+                  <div className="text-sm md:text-base font-bold text-purple-600">{stats.expected}万円</div>
                 </div>
               </div>
             </div>
 
-            {/* Detail Bars */}
-            <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-gray-400" />
+            {/* 詳細パラメータ */}
+            <div className="glass-card p-5 rounded-3xl">
+              <h3 className="text-base font-bold mb-5 flex items-center gap-2 text-gray-600">
+                <TrendingUp className="w-4 h-4 text-pink-400" />
                 詳細パラメータ
               </h3>
 
               <DevBar
                 label="全国同年代 年収偏差値"
-                desc="純粋に同じ年齢の全国平均年収と比較した絶対値"
+                desc="同じ年齢の全国平均年収と比較"
                 value={stats.nationalDev}
-                colorClass="bg-blue-500"
-                icon={Banknote}
+                barClass="bar-pink"
+                emoji="💴"
               />
 
               <DevBar
                 label="同年代 資産偏差値"
-                desc="同年代の平均純資産（資産合計−負債）と比較した値"
+                desc="同年代の平均純資産と比較"
                 value={stats.netWorthDev}
-                colorClass="bg-amber-500"
-                icon={Landmark}
+                barClass="bar-sky"
+                emoji="🏦"
               />
 
               <DevBar
                 label="同属性 年収偏差値"
-                desc="同じ業種・学歴・居住地の人の中での年収の立ち位置"
+                desc="同業種・学歴・居住地の中での立ち位置"
                 value={stats.attrDev}
-                colorClass="bg-purple-500"
-                icon={Briefcase}
+                barClass="bar-purple"
+                emoji="🎯"
               />
 
               <DevBar
                 label="労働コスパ 偏差値"
-                desc="労働時間と地域物価を考慮した実質的なQoL指標"
+                desc="労働時間と物価を考慮したQoL指標"
                 value={stats.qolDev}
-                colorClass="bg-emerald-500"
-                icon={Clock}
+                barClass="bar-mint"
+                emoji="🌿"
               />
 
-              <div className="mt-6 text-xs text-gray-400 text-center bg-gray-50 p-3 rounded-xl">
-                ※このシミュレータの数値は統計モデルを基にしたエンタメ用のおおよその目安です。
+              <div className="mt-4 text-[11px] text-gray-400 text-center bg-pink-50/50 p-2.5 rounded-xl border border-pink-100/30">
+                ※ このシミュレータの数値は統計モデルを基にしたエンタメ用のおおよその目安です 🫧
               </div>
             </div>
 
